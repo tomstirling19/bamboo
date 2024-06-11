@@ -21,7 +21,7 @@ func Start(openAIService *services.OpenAIService, lessonService *services.Lesson
 	log.Println("Bamboo server is starting...")
 
 	go func() {
-		log.Printf("Bamboo server started successfully on port: %s.", port)
+		log.Printf("Bamboo server started successfully on port: %s", port)
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Could not listen on %s: %v\n", server.Addr, err)
 		}

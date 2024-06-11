@@ -31,8 +31,10 @@ func NewLessonSchema(resolver *LessonResolver) (*graphql.Schema, error) {
             content: [TranslationPair!]!
         }
         type TranslationPair {
-            lessonText: String!
-            englishText: String!
+            lessonText: [String!]!
+            englishText: [String!]!
+			lessonSyllables: [String!]!
+            phoneticSpellings: [String!]!
         }
     `
 

@@ -48,6 +48,7 @@ func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, 
 	}
 
 	log.Printf("OpenAI Response: '%s'", utils.StripString(string(responseBody)))
+	log.Print(openAIResponse)
 	return openAIResponse, nil
 }
 
@@ -57,7 +58,7 @@ func createRequestPayload(prompt string) (*models.OpenAIRequest, error) {
 		Messages: []models.Message{
 			{Role: "user", Content: prompt},
 		},
-		MaxTokens: 350,
+		MaxTokens: 1000,
 	}, nil
 }
 

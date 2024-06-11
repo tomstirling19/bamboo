@@ -9,8 +9,10 @@ type Lesson struct {
 }
 
 type TranslationData struct {
-    LessonText  string `json:"lessonText"`
-    EnglishText string `json:"englishText"`
+    LessonText  []string       `json:"lessonText"`
+    EnglishText []string       `json:"englishText"`
+    LessonSyllables []string   `json:"lessonSyllables"`
+    PhoneticSpellings []string `json:"phoneticSpellings"`
 }
 
 type LessonResolver struct {
@@ -45,10 +47,18 @@ func (r *LessonResolver) Content() []*TranslationDataResolver {
     return content
 }
 
-func (r *TranslationDataResolver) LessonText() string {
+func (r *TranslationDataResolver) LessonText() []string {
     return r.Data.LessonText
 }
 
-func (r *TranslationDataResolver) EnglishText() string {
+func (r *TranslationDataResolver) EnglishText() []string {
     return r.Data.EnglishText
+}
+
+func (r *TranslationDataResolver) LessonSyllables() []string {
+    return r.Data.LessonSyllables
+}
+
+func (r *TranslationDataResolver) PhoneticSpellings() []string {
+    return r.Data.PhoneticSpellings
 }
