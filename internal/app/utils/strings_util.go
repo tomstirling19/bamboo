@@ -6,10 +6,10 @@ import (
 
 func StripString(s string) string {
 	re := regexp.MustCompile(`\\n|\\`)
-	cleanedString := re.ReplaceAllString(s, "")
+	strippedString := re.ReplaceAllString(s, "")
 
 	reWhitespace := regexp.MustCompile(`\s+`)
-	cleanedString = reWhitespace.ReplaceAllString(cleanedString, "")
+	strippedString = reWhitespace.ReplaceAllString(strippedString, "")
 
-	return cleanedString
+	return strippedString
 }
