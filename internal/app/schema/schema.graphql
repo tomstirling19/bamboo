@@ -1,3 +1,20 @@
-type Query {
-    getOpenAIResponse(prompt: String!): String!
+schema {
+    query: GetLesson
+}
+
+type GetLesson {
+    getLesson(language: String!, level: String!, topic: String!): Lesson!
+}
+
+type Lesson {
+    language: String!
+    level: String!
+    title: String!
+    description: String!
+    content: [TranslationData!]!
+}
+
+type TranslationData {
+    lessonText: String!
+    englishText: String!
 }

@@ -1,20 +1,20 @@
 package main
 
 import (
-	"log"
-
 	"bamboo/internal/app/services"
 	"bamboo/internal/config"
 	"bamboo/internal/server"
+	"log"
 )
 
 func main() {
 	cfg, err := config.LoadConfig("config/config.yaml")
 	if err != nil {
-		log.Fatalf("Could not load config from config yaml: %v", err)
+		log.Fatalf("Failed to load config: %v", err)
 	}
 
-	openAIService := services.NewOpenAIService(cfg.OpenAI.APIKey)
+    openAIService := services.NewOpenAIService(cfg.OpenAI.APIKey)
+    lessonService := services.NewLessonService()
 
-	server.Start(openAIService, cfg.Server.Port)
-}
+	    server.Start(openAIService, lessonService, cfg.Server.Port)
+	}

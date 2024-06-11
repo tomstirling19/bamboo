@@ -15,8 +15,8 @@ import (
 	"github.com/graph-gophers/graphql-go/relay"
 )
 
-func Start(openAIService *services.OpenAIService, port string) {
-	server := setupServer(openAIService, port)
+func Start(openAIService *services.OpenAIService, lessonService *services.LessonService, port string) {
+	server := setupServer(openAIService, lessonService, port)
 
 	log.Println("Bamboo server is starting...")
 
@@ -25,32 +25,33 @@ func Start(openAIService *services.OpenAIService, port string) {
 		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Could not listen on %s: %v\n", server.Addr, err)
 		}
-		log.Println("Bamboo server stopped accepting requests.")
+		log.Println("Bamboo server stopped accepting requests")
 	}()
 
 	handleShutdown(server)
 }
 
-func setupServer(openAIService *services.OpenAIService, port string) *http.Server {
-	resolver := &resolvers.OpenAIResolver{OpenAIService: openAIService}
-	schema := resolvers.NewSchema(resolver)
+func setupServer(
+	openAIService *services.OpenAIService,
+	lessonService *services.LessonService,
+	port string,
+) *http.Server {
+	schema, err := resolvers.NewLessonSchema(&resolvers.LessonResolver{
+		LessonService: lessonService,
+		OpenAIService: openAIService,
+	})
+	if err != nil {
+		log.Fatalf("Failed to create schema: %v", err)
+	}
 
-	http.Handle("/query", loggingMiddleware(&relay.Handler{Schema: schema}))
+	http.Handle("/bamboo", Logging(&relay.Handler{Schema: schema}))
 
 	server := &http.Server{
 		Addr:    ":" + port,
 		Handler: nil,
 	}
 
-	log.Printf("Bamboo server configured to listen on port: %s\n", port)
 	return server
-}
-
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Printf("Received %s request for %s", r.Method, r.URL.Path)
-		next.ServeHTTP(w, r)
-	})
 }
 
 func handleShutdown(server *http.Server) {
