@@ -32,10 +32,11 @@ func (s *LessonService) CreatePrompt(request *models.LessonRequest) string {
 		`Generate a list of %d sentence translations in %s for a %s level lesson on the topic "%s". 
 		Return an object with the following structure:
 		{
+			"lessonType: "%s",
 			"language": "%s",
 			"level": "Summary of the lesson difficulty",
-			"title": "Title summarizing the language, difficulty, and topic",
-			"description": "Brief description expanding on the title",
+			"topic": "The topic of the lesson",
+			"description": "Brief description of the lesson",
 			"content": [
 				{
 					"lessonText": ["sentence1", "sentence2", ...],
@@ -59,9 +60,10 @@ func (s *LessonService) CreatePrompt(request *models.LessonRequest) string {
 
 		Example Output for Japanese (Expert Level):
 		{
+			"lessonType": "Sentence"
 			"language": "Japanese",
 			"level": "Expert",
-			"title": "Japanese Expert: Ordering Food",
+			"topic": "Ordering Food",
 			"description": "This lesson covers advanced phrases and vocabulary for ordering food in Japanese.",
 			"content": [
 				{
@@ -76,5 +78,5 @@ func (s *LessonService) CreatePrompt(request *models.LessonRequest) string {
 		- This prompt is designed to generate a lesson object in the specified format for language learning.
 		- Make sure that the syllables are split and represented accurately according to the phonetic rules of the target language.
 		- Ensure that the phoneticSpellings provide a close phonetic approximation of the pronunciation of the sentences in the lesson language, reflecting how they sound when spoken in that language.`,
-		2, request.Language, request.Level, request.Topic, request.Language, request.Language, request.Language, request.Language)		
+		2, request.Language, request.Level, request.Topic, request.LessonType, request.Language, request.Language, request.Language, request.Language)		
 }

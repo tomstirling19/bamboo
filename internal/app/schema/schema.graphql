@@ -3,18 +3,19 @@ schema {
 }
 
 type GetLesson {
-    getLesson(language: String!, level: String!, topic: String!): Lesson!
+    getLesson(lessonType: String!, language: String!, level: String!, topic: String!): Lesson!
 }
 
 type Lesson {
+    lessonType: String!
     language: String!
     level: String!
     title: String!
     description: String!
-    content: [TranslationData!]!
+    content: [LessonContent!]!
 }
 
-type TranslationData {
+type LessonContent {
     lessonText: [String!]!
     englishText: [String!]!
     lessonSyllables: [String!]!

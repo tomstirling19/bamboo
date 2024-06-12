@@ -11,8 +11,59 @@ import (
 )
 
 type LessonResolver struct {
-    LessonService *services.LessonService
+	LessonService *services.LessonService
     OpenAIService *services.OpenAIService
+    Data *models.Lesson
+}
+
+func (r *LessonResolver) LessonType() string {
+    return r.Data.LessonType
+}
+
+func (r *LessonResolver) Language() string {
+    return r.Data.Language
+}
+
+func (r *LessonResolver) Level() string {
+    return r.Data.Level
+}
+
+func (r *LessonResolver) Description() string {
+    return r.Data.Description
+}
+
+func (r *LessonResolver) Content() []*LessonContentResolver {
+    var content []*LessonContentResolver
+    for i := range r.Data.Content {
+        content = append(content, &LessonContentResolver{Data: &r.Data.Content[i]})
+    }
+    return content
+}
+
+func (r *LessonResolver) GetLesson(ctx context.Context, req models.LessonRequest) (*LessonResolver, error) {
+    request := &models.LessonRequest{
+		BaseLesson: models.BaseLesson{
+			LessonType: req.LessonType,
+			Language:   req.Language,
+			Level:      req.Level,
+            Topic:      req.Topic,
+		},
+	}
+
+    prompt := r.LessonService.CreatePrompt(request)
+    res, err := r.OpenAIService.GetResponseJSON(prompt)
+    if err != nil {
+        log.Printf("Error getting response: %v", err)
+        return nil, err
+    }
+
+    lesson, err := r.LessonService.GetLessonContent(res)
+    if err != nil {
+        log.Printf("Error parsing response: %v", err)
+        return nil, err
+    }
+
+    return &LessonResolver{Data: lesson}, nil
 }
 
 func NewLessonSchema(resolver *LessonResolver) (*graphql.Schema, error) {
@@ -21,16 +72,16 @@ func NewLessonSchema(resolver *LessonResolver) (*graphql.Schema, error) {
             query: Query
         }
         type Query {
-            getLesson(language: String!, level: String!, topic: String!): LessonResponse!
+            getLesson(lessonType: String!, language: String!, level: String!, topic: String!): Lesson!
         }
-        type LessonResponse {
+        type Lesson {
+            lessonType: String!
             language: String!
             level: String!
-            title: String!
             description: String!
-            content: [TranslationPair!]!
+            content: [LessonContent!]!
         }
-        type TranslationPair {
+        type LessonContent {
             lessonText: [String!]!
             englishText: [String!]!
 			lessonSyllables: [String!]!
@@ -44,27 +95,4 @@ func NewLessonSchema(resolver *LessonResolver) (*graphql.Schema, error) {
     }
 
     return parsedSchema, nil
-}
-
-func (r *LessonResolver) GetLesson(ctx context.Context, req models.LessonRequest) (*models.LessonResolver, error) {
-    request := &models.LessonRequest{
-        Language: req.Language,
-        Level:    req.Level,
-        Topic:    req.Topic,
-    }
-
-    prompt := r.LessonService.CreatePrompt(request)
-    res, err := r.OpenAIService.GetResponseJSON(prompt)
-    if err != nil {
-        log.Printf("Error getting response: %v", err)
-        return nil, err
-    }
-
-    lessonResponse, err := r.LessonService.GetLessonContent(res)
-    if err != nil {
-        log.Printf("Error parsing response: %v", err)
-        return nil, err
-    }
-
-    return &models.LessonResolver{Data: lessonResponse}, nil
 }

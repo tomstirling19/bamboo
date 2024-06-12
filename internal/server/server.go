@@ -44,7 +44,7 @@ func setupServer(
 		log.Fatalf("Failed to create schema: %v", err)
 	}
 
-	http.Handle("/bamboo", Logging(&relay.Handler{Schema: schema}))
+	http.Handle("/graphql", Logging(&relay.Handler{Schema: schema}))
 
 	server := &http.Server{
 		Addr:    ":" + port,
