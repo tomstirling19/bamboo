@@ -1,20 +1,28 @@
 schema {
-    query: GetLesson
+    query: Query
 }
 
-type GetLesson {
-    getLesson(lessonType: String!, language: String!, level: String!, topic: String!): Lesson!
+type Query {
+    getLesson(lessonType: String!, language: String!, level: String!, topic: String): Lesson!
 }
 
 type Lesson {
     lessonType: String!
     language: String!
     level: String!
+    topic: String
     description: String!
     content: [LessonContent!]!
 }
 
-type LessonContent {
+union LessonContent = AlphabetLesson | WordOrSentenceLesson
+
+type AlphabetLesson {
+    alphabetCharacter: [String!]!
+    phoneme: [String!]!
+}
+
+type WordOrSentenceLesson {
     lessonText: [String!]!
     englishText: [String!]!
     lessonSyllables: [String!]!

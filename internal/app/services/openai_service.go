@@ -33,12 +33,12 @@ func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, 
 		return nil, fmt.Errorf("failed to marshal request payload: %v", err)
 	}
 
-	req, err := createHTTPRequest(s.Config.APIKey, requestBody)
+	req, err := createRequest(s.Config.APIKey, requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %v", err)
 	}
 
-	responseBody, err := executeHTTPRequest(req)
+	responseBody, err := executeRequest(req)
 	if err != nil {
 		return nil, err
 	}
@@ -62,7 +62,7 @@ func createRequestPayload(prompt string) (*models.OpenAIRequest, error) {
 	}, nil
 }
 
-func createHTTPRequest(apiKey string, requestBody []byte) (*http.Request, error) {
+func createRequest(apiKey string, requestBody []byte) (*http.Request, error) {
 	req, err := http.NewRequest("POST", openaiURL, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func createHTTPRequest(apiKey string, requestBody []byte) (*http.Request, error)
 	return req, nil
 }
 
-func executeHTTPRequest(req *http.Request) ([]byte, error) {
+func executeRequest(req *http.Request) ([]byte, error) {
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {

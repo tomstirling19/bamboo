@@ -9,74 +9,111 @@ import (
 type LessonService struct{}
 
 func NewLessonService() *LessonService {
-	return &LessonService{}
+    return &LessonService{}
 }
 
 func (s *LessonService) GetLessonContent(res *models.OpenAIResponse) (*models.Lesson, error) {
-	if len(res.Choices) == 0 || res.Choices[0].Message.Content == "" {
-		return nil, fmt.Errorf("no content found in response")
-	}
+    contentJSON, err := extractContent(res)
+    if err != nil {
+        return nil, err
+    }
 
-	contentJSON := res.Choices[0].Message.Content.(string)
+    var raw map[string]json.RawMessage
+    if err := json.Unmarshal([]byte(contentJSON), &raw); err != nil {
+        return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+    }
 
-	var lessonData models.Lesson
-	if err := json.Unmarshal([]byte(contentJSON), &lessonData); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal lesson content: %v", err)
-	}
+    lesson, err := createBaseLesson(raw)
+    if err != nil {
+        return nil, err
+    }
 
-	return &lessonData, nil
+    lessonContent, err := unmarshalLessonContent(raw["content"], lesson.LessonType)
+    if err != nil {
+        return nil, err
+    }
+
+    lesson.Content = lessonContent
+    return lesson, nil
 }
 
-func (s *LessonService) CreatePrompt(request *models.LessonRequest) string {
-	return fmt.Sprintf(
-		`Generate a list of %d sentence translations in %s for a %s level lesson on the topic "%s". 
-		Return an object with the following structure:
-		{
-			"lessonType: "%s",
-			"language": "%s",
-			"level": "Summary of the lesson difficulty",
-			"topic": "The topic of the lesson",
-			"description": "Brief description of the lesson",
-			"content": [
-				{
-					"lessonText": ["sentence1", "sentence2", ...],
-					"englishText": ["english1", "english2", ...],
-					"lessonSyllables": ["word1_syllable1-word1_syllable2 word2_syllable1-word2_syllable2", ...],
-					"phoneticSpellings": ["word1_syllable1-word1_syllable2 word2_syllable1-word2_syllable2", ...]
-				}
-			]
-		}
-		Rules:
-		1. Ensure each sentence is grammatically correct with appropriate spacing and punctuation and no field has trailing spaces.
-		2. Ensure indices match across arrays, i.e., sentence1, english1, and its syllables should all correspond to index 0.
-		3. Use hyphens ('-') to separate syllables within words in the 'syllables' array but not before punctuation.
-		4. Use spaces to separate words within the 'syllables' array.
-		5. For Japanese, split syllables by kana or mora, including long vowels and particles as separate units (e.g., 'すみません、メニューをください' should be 'す-み-ま-せ-ん', 'め-にゅー-を-く-だ-さ-い').
-		6. For Japanese, clearly distinguish different words in the 'syllables' array with spaces.
-		7. Ensure syllables are accurately split according to the %s language's phonetic rules.
-		8. Represent each syllable and word correctly without combining multiple syllables into one or improperly breaking single syllables.
-		9. Ensure each English translation is contextually and semantically accurate to the corresponding sentence in %s.
-		10. phoneticSpellings should be the sounds of the characters in the %s language (phonetic spellings), not the words from the English translation.
+func extractContent(res *models.OpenAIResponse) (string, error) {
+    if len(res.Choices) == 0 || res.Choices[0].Message.Content == "" {
+        return "", fmt.Errorf("no content found in response")
+    }
+    content, ok := res.Choices[0].Message.Content.(string)
+    if !ok {
+        return "", fmt.Errorf("invalid content format")
+    }
+    return content, nil
+}
 
-		Example Output for Japanese (Expert Level):
-		{
-			"lessonType": "Sentence"
-			"language": "Japanese",
-			"level": "Expert",
-			"topic": "Ordering Food",
-			"description": "This lesson covers advanced phrases and vocabulary for ordering food in Japanese.",
-			"content": [
-				{
-					"lessonText": ["お水を一つお願いします。", "美味しいランチを注文したいです。", "デザートメニューは何がありますか？", "ご飯とお味噌汁をセットでお願いします。"],
-					"englishText": ["One water, please.", "I would like to order a delicious lunch.", "What desserts do you have on the menu?", "I'll have rice and miso soup as a set, please."],
-					"lessonSyllables": ["お-み-ず-を ひと-つ お-ね-が-い-し-ま-す", "おい-し-い らん-ち を ちゅう-もん-し-た-い-です", "で-ざー-と め-にゅー- は なに が あ-り-ま-す-か", "ご-はん と お-み-そ-し-る を セット で お-ね-が-い-し-ま-す"],
-					"phoneticSpellings": ["o-mi-zu o hi-to-tsu o-ne-ga-i-shi-ma-su", "o-i-shi-i ran-chi o chuu-mon-shi-ta-i de-su", "de-za-a-to me-nyuu wa na-ni ga a-ri-ma-su ka", "go-han to o-mi-so-shi-ru o set-to de o-ne-ga-i-shi-ma-su"]
-				}
-			]
-		}
-		Notes:
-		- This prompt is designed to generate a lesson object in the specified format for language learning.
-		- Make sure that the syllables are split and represented accurately according to the phonetic rules of the target language.
-		- Ensure that the phoneticSpellings provide a close phonetic approximation of the pronunciation of the sentences in the lesson language, reflecting how they sound when spoken in that language.`,
-		2, request.Language, request.Level, request.Topic, request.LessonType, request.Language, request.Language, request.Language, request.Language)		
+func createBaseLesson(raw map[string]json.RawMessage) (*models.Lesson, error) {
+    var lesson models.Lesson
+
+    fields := map[string]interface{}{
+        "lessonType": &lesson.LessonType,
+        "language":   &lesson.Language,
+        "level":      &lesson.Level,
+        "description": &lesson.Description,
+    }
+
+    for key, field := range fields {
+        if err := json.Unmarshal(raw[key], field); err != nil {
+            return nil, fmt.Errorf("failed to unmarshal %s: %w", key, err)
+        }
+    }
+
+    return &lesson, nil
+}
+
+func unmarshalLessonContent(contentJSON json.RawMessage, lessonType string) ([]models.LessonContent, error) {
+    var contentArray []json.RawMessage
+    if err := json.Unmarshal(contentJSON, &contentArray); err != nil {
+        return nil, fmt.Errorf("failed to unmarshal content array: %w", err)
+    }
+
+    var lessonContent []models.LessonContent
+
+    for _, content := range contentArray {
+        lesson, err := unmarshalContentByType(content, lessonType)
+        if err != nil {
+            return nil, err
+        }
+        lessonContent = append(lessonContent, lesson)
+    }
+
+    return lessonContent, nil
+}
+
+func unmarshalContentByType(content json.RawMessage, lessonType string) (models.LessonContent, error) {
+    switch lessonType {
+    case "alphabet":
+        var lesson models.AlphabetLesson
+        if err := json.Unmarshal(content, &lesson); err != nil {
+            return nil, fmt.Errorf("failed to unmarshal alphabet content: %w", err)
+        }
+        return &lesson, nil
+    case "word", "sentence":
+        var lesson models.WordOrSentenceLesson
+        if err := json.Unmarshal(content, &lesson); err != nil {
+            return nil, fmt.Errorf("failed to unmarshal word/sentence content: %w", err)
+        }
+        return &lesson, nil
+    default:
+        return nil, fmt.Errorf("unknown lesson type: %s", lessonType)
+    }
+}
+
+func (s *LessonService) CreateLessonPrompt(request *models.LessonRequest) string {
+    switch request.LessonType {
+    case "alphabet":
+        return s.createAlphabetLessonPrompt(request)
+    case "word":
+        return s.createWordLessonPrompt(request)
+    case "sentence":
+        return s.createSentenceLessonPrompt(request)
+    default:
+        return ""
+    }
 }
