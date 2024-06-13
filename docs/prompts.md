@@ -54,7 +54,7 @@
 	example curl: 
 		curl -X POST \
 		-H "Content-Type: application/json" \
-		-d '{"query": "{ getLesson(lessonType: \"Sentence\", language: \"Japanese\", level: \"Expert\", topic: \"Ordering food\") { language level description content { lessonText englishText lessonSyllables phoneticSpellings } } }"}' \
+		-d '{"query": "{ getLesson(lessonType: \"Sentence\", language: \"Japanese\", level: \"Expert\", topic: \"Ordering food\") { lessonType language level description content { lessonText englishText lessonSyllables phoneticSpellings } } }"}' \
 		http://localhost:8080/graphql
 
 

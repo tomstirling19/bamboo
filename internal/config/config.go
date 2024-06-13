@@ -14,15 +14,15 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port string `yaml:"port"`
+	Port 	   string `yaml:"port"`
 }
 
 type OpenAIConfig struct {
-	APIKey string `yaml:"api_key"`
+	APIKey string `yaml:"apiKey"`
 }
 
 type GraphQLConfig struct {
-	SchemaPath string `yaml:"schema_path"`
+	SchemaPath string `yaml:"schemaPath"`
 }
 
 func LoadConfig(filename string) (*Config, error) {
