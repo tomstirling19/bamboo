@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Server ServerConfig `yaml:"server"`
-	OpenAI OpenAIConfig `yaml:"openai"`
+	ServerConfig  ServerConfig  `yaml:"server"`
+	OpenAIConfig  OpenAIConfig  `yaml:"openai"`
+	GraphQLConfig GraphQLConfig `yaml:"graphql"`
 }
 
 type ServerConfig struct {
@@ -17,7 +18,11 @@ type ServerConfig struct {
 }
 
 type OpenAIConfig struct {
-	APIKey string `yaml:"apiKey"`
+	APIKey string `yaml:"api_key"`
+}
+
+type GraphQLConfig struct {
+	SchemaPath string `yaml:"schema_path"`
 }
 
 func LoadConfig(filename string) (*Config, error) {

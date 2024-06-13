@@ -15,8 +15,13 @@ import (
 	"github.com/graph-gophers/graphql-go/relay"
 )
 
-func Start(openAIService *services.OpenAIService, lessonService *services.LessonService, port string) {
-	server := setupServer(openAIService, lessonService, port)
+func Start(
+	openAIService *services.OpenAIService,
+	graphQLService *services.GraphQLService,
+	lessonService *services.LessonService,
+	port string,
+){
+	server := setupServer(openAIService, graphQLService, lessonService, port)
 
 	log.Println("Bamboo server is starting...")
 
@@ -33,10 +38,11 @@ func Start(openAIService *services.OpenAIService, lessonService *services.Lesson
 
 func setupServer(
 	openAIService *services.OpenAIService,
+	graphQLService *services.GraphQLService,
 	lessonService *services.LessonService,
 	port string,
 ) *http.Server {
-	schema, err := resolvers.NewLessonSchema(&resolvers.LessonResolver{
+	schema, err := graphQLService.LoadSchema(&resolvers.LessonResolver{
 		LessonService: lessonService,
 		OpenAIService: openAIService,
 	})

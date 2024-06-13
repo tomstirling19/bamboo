@@ -10,7 +10,6 @@ type Lesson {
     lessonType: String!
     language: String!
     level: String!
-    title: String!
     description: String!
     content: [LessonContent!]!
 }

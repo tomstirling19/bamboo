@@ -13,8 +13,9 @@ func main() {
 		log.Fatalf("Failed to load config: %v", err)
 	}
 
-    openAIService := services.NewOpenAIService(cfg.OpenAI.APIKey)
-    lessonService := services.NewLessonService()
+	openAIService := services.NewOpenAIService(&cfg.OpenAIConfig)
+	graphQLService := services.NewGraphQLService(&cfg.GraphQLConfig)
+	lessonService := services.NewLessonService()
 
-	    server.Start(openAIService, lessonService, cfg.Server.Port)
-	}
+	server.Start(openAIService, graphQLService, lessonService, cfg.ServerConfig.Port)
+}

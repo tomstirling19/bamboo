@@ -4,10 +4,7 @@ import (
 	"bamboo/internal/app/models"
 	"bamboo/internal/app/services"
 	"context"
-	"fmt"
 	"log"
-
-	"github.com/graph-gophers/graphql-go"
 )
 
 type LessonResolver struct {
@@ -64,35 +61,4 @@ func (r *LessonResolver) GetLesson(ctx context.Context, req models.LessonRequest
     }
 
     return &LessonResolver{Data: lesson}, nil
-}
-
-func NewLessonSchema(resolver *LessonResolver) (*graphql.Schema, error) {
-    schema := `
-        schema {
-            query: Query
-        }
-        type Query {
-            getLesson(lessonType: String!, language: String!, level: String!, topic: String!): Lesson!
-        }
-        type Lesson {
-            lessonType: String!
-            language: String!
-            level: String!
-            description: String!
-            content: [LessonContent!]!
-        }
-        type LessonContent {
-            lessonText: [String!]!
-            englishText: [String!]!
-			lessonSyllables: [String!]!
-            phoneticSpellings: [String!]!
-        }
-    `
-
-    parsedSchema, err := graphql.ParseSchema(schema, resolver)
-    if err != nil {
-        return nil, fmt.Errorf("failed to parse schema: %w", err)
-    }
-
-    return parsedSchema, nil
 }

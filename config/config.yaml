@@ -2,4 +2,7 @@ server:
   port: "8080"
 
 openai:
-  apiKey: "OPENAI_API_KEY"
+  api_key: "OPENAI_API_KEY"
+
+graphql:
+  schema_path: "internal/app/schema/schema.graphql"

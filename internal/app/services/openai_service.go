@@ -3,6 +3,7 @@ package services
 import (
 	"bamboo/internal/app/models"
 	"bamboo/internal/app/utils"
+	"bamboo/internal/config"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -14,11 +15,11 @@ import (
 const openaiURL = "https://api.openai.com/v1/chat/completions"
 
 type OpenAIService struct {
-	APIKey string
+	Config *config.OpenAIConfig
 }
 
-func NewOpenAIService(apiKey string) *OpenAIService {
-	return &OpenAIService{APIKey: apiKey}
+func NewOpenAIService(config *config.OpenAIConfig) *OpenAIService {
+	return &OpenAIService{Config: config}
 }
 
 func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, error) {
@@ -32,7 +33,7 @@ func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, 
 		return nil, fmt.Errorf("failed to marshal request payload: %v", err)
 	}
 
-	req, err := createHTTPRequest(s.APIKey, requestBody)
+	req, err := createHTTPRequest(s.Config.APIKey, requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %v", err)
 	}
@@ -47,8 +48,7 @@ func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, 
 		return nil, err
 	}
 
-	log.Printf("OpenAI Response: '%s'", utils.StripString(string(responseBody)))
-	log.Print(openAIResponse)
+	log.Printf("OpenAI Response: %s", utils.ToJSONString(openAIResponse))
 	return openAIResponse, nil
 }
 
