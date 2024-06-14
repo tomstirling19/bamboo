@@ -14,11 +14,12 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port 	   string `yaml:"port"`
+	Port string `yaml:"port"`
 }
 
 type OpenAIConfig struct {
 	APIKey string `yaml:"apiKey"`
+	APIUrl string `yaml:"apiUrl"`
 }
 
 type GraphQLConfig struct {

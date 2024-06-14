@@ -3,26 +3,33 @@ schema {
 }
 
 type Query {
-    getLesson(lessonType: String!, language: String!, level: String!, topic: String): Lesson!
+    getAlphabetLesson(language: String!, level: String!): AlphabetLesson!
+    getWordOrSentenceLesson(lessonType: String!, language: String!, level: String!, topic: String!): WordOrSentenceLesson!
 }
 
-type Lesson {
+type AlphabetLesson {
+    lessonType: String!
+    language: String!
+    level: String!
+    description: String
+    content: [AlphabetContent!]!
+}
+
+type WordOrSentenceLesson {
     lessonType: String!
     language: String!
     level: String!
     topic: String
-    description: String!
-    content: [LessonContent!]!
+    description: String
+    content: [WordOrSentenceContent!]!
 }
 
-union LessonContent = AlphabetLesson | WordOrSentenceLesson
-
-type AlphabetLesson {
+type AlphabetContent {
     alphabetCharacter: [String!]!
     phoneme: [String!]!
 }
 
-type WordOrSentenceLesson {
+type WordOrSentenceContent {
     lessonText: [String!]!
     englishText: [String!]!
     lessonSyllables: [String!]!

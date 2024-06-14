@@ -15,7 +15,7 @@ func main() {
 
 	openAIService := services.NewOpenAIService(&cfg.OpenAIConfig)
 	graphQLService := services.NewGraphQLService(&cfg.GraphQLConfig)
-	lessonService := services.NewLessonService()
+	lessonService := services.NewLessonService(openAIService)
 
 	server.Start(openAIService, graphQLService, lessonService, cfg.ServerConfig.Port)
 }

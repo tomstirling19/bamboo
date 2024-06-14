@@ -53,9 +53,9 @@
 ## example curl
 
 	curl -X POST \
-	-H "Content-Type: application/json" \
-	-d '{"query": "{ getLesson(lessonType: \"sentence\", language: \"Japanese\", level: \"Beginner\", topic: \"Ordering food\") { lessonType language level description content { ... on WordOrSentenceLesson { lessonText englishText lessonSyllables phoneticSpellings } } } }"}' \
-	http://localhost:8080/graphql
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ getWordOrSentenceLesson(lessonType: \"sentence\", language: \"Japanese\", level: \"Beginner\", topic: \"Ordering food\") { lessonType language level topic description content { lessonText englishText lessonSyllables phoneticSpellings } } }"}' \
+		http://localhost:8080/graphql
 
 
 # A prompt to generate single words, including the corresponding sound or meaning.
@@ -111,56 +111,41 @@
 
 	curl -X POST \
 		-H "Content-Type: application/json" \
-		-d '{"query": "{ getLesson(lessonType: \"word\", language: \"Japanese\", level: \"Expert\", topic: \"Ordering food\") { lessonType language level description content { ... on WordOrSentenceLesson { lessonText englishText lessonSyllables phoneticSpellings } } } }"}' \
+		-d '{"query": "{ getWordOrSentenceLesson(lessonType: \"word\", language: \"Japanese\", level: \"Beginner\", topic: \"Ordering food\") { lessonType language level topic description content { lessonText englishText lessonSyllables phoneticSpellings } } }"}' \
 		http://localhost:8080/graphql
 
 
 # A prompt for alphabet
 
-	`Generate a random list of %d alphabet characters in %s for a %s level lesson on the topic "%s".
-	Return an object with the following structure:
-	{
-		"lessonType": "%s",
-		"language": "%s",
-		"level": "Summary of the lesson difficulty",
-		"description": "Brief description of the lesson",
-		"content": [
-			{
-				"alphabetCharacter": ["character1", "character2", ...],
-				"phoneme": ["phoneme1", "phoneme2", ...]
-			}
-		]
-	}
-	Rules:
-	1. Ensure each alphabet character is correctly represented and matches the corresponding phoneme.
-	2. Ensure indices match across arrays, i.e., character1 and phoneme1 should correspond to index 0.
-	3. Use appropriate notation to represent phonemes clearly and accurately for the %s language.
-	4. Ensure phonemes are contextually accurate to their corresponding alphabet character in %s.
-	5. Represent each alphabet character and phoneme without combining multiple sounds into one or improperly breaking single sounds.
-	6. Ensure that each phoneme provides a close phonetic approximation of the pronunciation of the alphabet character in the lesson language.
-	7. Do not take into account the topic. As this is focused on alphabet learning it is not relevant.
-
-	Example Output for Japanese (Beginner Level):
-	{
-		"lessonType": "alphabet",
-		"language": "Japanese",
-		"level": "Beginner",
-		"description": "This lesson covers the basic Hiragana characters and their phonetic sounds in Japanese.",
-		"content": [
-			{
-				"alphabetCharacter": ["あ", "い", "う", "え", "お", ...], // Include all relevant characters
-				"phoneme": ["a", "i", "u", "e", "o", ...] // Include phonetic sounds for each character
-			}
-		]
-	}
-	Notes:
-	- This prompt is designed to generate a lesson object in the specified format for language learning.
-	- Make sure that the phonemes are split and represented accurately according to the phonetic rules of the target language.
-	- Ensure that the phonemes provide a close phonetic approximation of the pronunciation of the alphabet characters, reflecting how they sound when spoken in that language.`
+	`Generate a random list of %d alphabet characters in %s for a %s level.
+		Return an object with the following structure:
+		{
+			"lessonType": "%s",
+			"language": "%s",
+			"level": "Summary of the lesson difficulty",
+			"description": "Brief description of the lesson",
+			"content": [
+				{
+					"alphabetCharacter": ["character1", "character2", ...],
+					"phoneme": ["phoneme1", "phoneme2", ...]
+				}
+			]
+		}
+		Rules:
+		1. Ensure each alphabet character is correctly represented and matches the corresponding phoneme.
+		2. Ensure indices match across arrays, i.e., character1 and phoneme1 should correspond to index 0.
+		3. Use appropriate notation to represent phonemes clearly and accurately for the %s language.
+		4. Ensure phonemes are contextually accurate to their corresponding alphabet character in %s.
+		5. Represent each alphabet character and phoneme without combining multiple sounds into one or improperly breaking single sounds.
+		6. Ensure that each phoneme provides a close phonetic approximation of the pronunciation of the alphabet character in the lesson language.
+		Notes:
+		- This prompt is designed to generate a lesson object in the specified format for language learning.
+		- Make sure that the phonemes are split and represented accurately according to the phonetic rules of the target language.
+		- Ensure that the phonemes provide a close phonetic approximation of the pronunciation of the alphabet characters, reflecting how they sound when spoken in that language.`
 
 ## example curl
 
 	curl -X POST \
-        -H "Content-Type: application/json" \
-        -d '{"query": "{ getLesson(lessonType: \"alphabet\", language: \"Japanese\", level: \"Beginner\" topic: \"\") { lessonType language level description content { ... on AlphabetLesson { alphabetCharacter phoneme } } } }"}' \
-        http://localhost:8080/graphql
+		-H "Content-Type: application/json" \
+		-d '{"query": "{ getAlphabetLesson(language: \"Japanese\", level: \"Beginner\") { lessonType language level description content { alphabetCharacter phoneme } } }"}' \
+		http://localhost:8080/graphql

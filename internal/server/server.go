@@ -20,7 +20,7 @@ func Start(
 	graphQLService *services.GraphQLService,
 	lessonService *services.LessonService,
 	port string,
-){
+) {
 	server := setupServer(openAIService, graphQLService, lessonService, port)
 
 	log.Println("Bamboo server is starting...")
@@ -44,7 +44,6 @@ func setupServer(
 ) *http.Server {
 	schema, err := graphQLService.LoadSchema(&resolvers.LessonResolver{
 		LessonService: lessonService,
-		OpenAIService: openAIService,
 	})
 	if err != nil {
 		log.Fatalf("Failed to create schema: %v", err)

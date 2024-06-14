@@ -3,117 +3,66 @@ package services
 import (
 	"bamboo/internal/app/models"
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
-type LessonService struct{}
-
-func NewLessonService() *LessonService {
-    return &LessonService{}
+type LessonService struct {
+	OpenAIService *OpenAIService
 }
 
-func (s *LessonService) GetLessonContent(res *models.OpenAIResponse) (*models.Lesson, error) {
-    contentJSON, err := extractContent(res)
+func NewLessonService(openAIService *OpenAIService) *LessonService {
+	return &LessonService{OpenAIService: openAIService}
+}
+
+
+func (s *LessonService) GetAlphabetLesson(req *models.LessonRequest) (*models.AlphabetLesson, error) {
+    prompt := s.CreateAlphabetLessonPrompt(req)
+    res, err := s.OpenAIService.GetJSONResponse(prompt)
     if err != nil {
         return nil, err
     }
 
-    var raw map[string]json.RawMessage
-    if err := json.Unmarshal([]byte(contentJSON), &raw); err != nil {
-        return nil, fmt.Errorf("failed to unmarshal JSON: %w", err)
+    if len(res.Choices) == 0 {
+        return nil, errors.New("no choices available in the response")
     }
 
-    lesson, err := createBaseLesson(raw)
+    contentJson := res.Choices[0].Message.Content.(string)
+    var lesson models.AlphabetLesson
+    err = json.Unmarshal([]byte(contentJson), &lesson)
     if err != nil {
-        return nil, err
+        return nil, fmt.Errorf("failed to unmarshal JSON into AlphabetLesson: %v", err)
     }
-
-    lessonContent, err := unmarshalLessonContent(raw["content"], lesson.LessonType)
-    if err != nil {
-        return nil, err
-    }
-
-    lesson.Content = lessonContent
-    return lesson, nil
-}
-
-func extractContent(res *models.OpenAIResponse) (string, error) {
-    if len(res.Choices) == 0 || res.Choices[0].Message.Content == "" {
-        return "", fmt.Errorf("no content found in response")
-    }
-    content, ok := res.Choices[0].Message.Content.(string)
-    if !ok {
-        return "", fmt.Errorf("invalid content format")
-    }
-    return content, nil
-}
-
-func createBaseLesson(raw map[string]json.RawMessage) (*models.Lesson, error) {
-    var lesson models.Lesson
-
-    fields := map[string]interface{}{
-        "lessonType": &lesson.LessonType,
-        "language":   &lesson.Language,
-        "level":      &lesson.Level,
-        "description": &lesson.Description,
-    }
-
-    for key, field := range fields {
-        if err := json.Unmarshal(raw[key], field); err != nil {
-            return nil, fmt.Errorf("failed to unmarshal %s: %w", key, err)
-        }
-    }
-
     return &lesson, nil
 }
 
-func unmarshalLessonContent(contentJSON json.RawMessage, lessonType string) ([]models.LessonContent, error) {
-    var contentArray []json.RawMessage
-    if err := json.Unmarshal(contentJSON, &contentArray); err != nil {
-        return nil, fmt.Errorf("failed to unmarshal content array: %w", err)
-    }
 
-    var lessonContent []models.LessonContent
+func (s *LessonService) GetWordOrSentenceLesson(req *models.LessonRequest) (*models.WordOrSentenceLesson, error) {
+    var prompt string
 
-    for _, content := range contentArray {
-        lesson, err := unmarshalContentByType(content, lessonType)
-        if err != nil {
-            return nil, err
-        }
-        lessonContent = append(lessonContent, lesson)
-    }
-
-    return lessonContent, nil
-}
-
-func unmarshalContentByType(content json.RawMessage, lessonType string) (models.LessonContent, error) {
-    switch lessonType {
-    case "alphabet":
-        var lesson models.AlphabetLesson
-        if err := json.Unmarshal(content, &lesson); err != nil {
-            return nil, fmt.Errorf("failed to unmarshal alphabet content: %w", err)
-        }
-        return &lesson, nil
-    case "word", "sentence":
-        var lesson models.WordOrSentenceLesson
-        if err := json.Unmarshal(content, &lesson); err != nil {
-            return nil, fmt.Errorf("failed to unmarshal word/sentence content: %w", err)
-        }
-        return &lesson, nil
-    default:
-        return nil, fmt.Errorf("unknown lesson type: %s", lessonType)
-    }
-}
-
-func (s *LessonService) CreateLessonPrompt(request *models.LessonRequest) string {
-    switch request.LessonType {
-    case "alphabet":
-        return s.createAlphabetLessonPrompt(request)
+    switch req.LessonType {
     case "word":
-        return s.createWordLessonPrompt(request)
+        prompt = s.CreateWordLessonPrompt(req)
     case "sentence":
-        return s.createSentenceLessonPrompt(request)
+        prompt = s.CreateSentenceLessonPrompt(req)
     default:
-        return ""
+        return nil, fmt.Errorf("unknown lesson type: %s", req.LessonType)
     }
+
+    res, err := s.OpenAIService.GetJSONResponse(prompt)
+    if err != nil {
+        return nil, err
+    }
+
+    if len(res.Choices) == 0 {
+        return nil, errors.New("no choices available in the response")
+    }
+
+    contentJson := res.Choices[0].Message.Content.(string)
+    var lesson models.WordOrSentenceLesson
+    err = json.Unmarshal([]byte(contentJson), &lesson)
+    if err != nil {
+        return nil, fmt.Errorf("failed to unmarshal JSON into WordOrSentenceLesson: %v", err)
+    }
+    return &lesson, nil
 }

@@ -12,8 +12,6 @@ import (
 	"net/http"
 )
 
-const openaiURL = "https://api.openai.com/v1/chat/completions"
-
 type OpenAIService struct {
 	Config *config.OpenAIConfig
 }
@@ -22,7 +20,7 @@ func NewOpenAIService(config *config.OpenAIConfig) *OpenAIService {
 	return &OpenAIService{Config: config}
 }
 
-func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, error) {
+func (s *OpenAIService) GetJSONResponse(prompt string) (*models.OpenAIResponse, error) {
 	requestPayload, err := createRequestPayload(prompt)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request payload: %v", err)
@@ -33,7 +31,7 @@ func (s *OpenAIService) GetResponseJSON(prompt string) (*models.OpenAIResponse, 
 		return nil, fmt.Errorf("failed to marshal request payload: %v", err)
 	}
 
-	req, err := createRequest(s.Config.APIKey, requestBody)
+	req, err := createRequest(s.Config.APIKey, s.Config.APIUrl, requestBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create HTTP request: %v", err)
 	}
@@ -62,13 +60,13 @@ func createRequestPayload(prompt string) (*models.OpenAIRequest, error) {
 	}, nil
 }
 
-func createRequest(apiKey string, requestBody []byte) (*http.Request, error) {
-	req, err := http.NewRequest("POST", openaiURL, bytes.NewBuffer(requestBody))
+func createRequest(apiKey string, apiUrl string, requestBody []byte) (*http.Request, error) {
+	req, err := http.NewRequest("POST", apiUrl, bytes.NewBuffer(requestBody))
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+apiKey)
+	req.Header.Set("Authorization", "Bearer " + apiKey)
 	return req, nil
 }
 

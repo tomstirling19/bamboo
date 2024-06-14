@@ -1,13 +1,11 @@
 package models
 
 type AlphabetLesson struct {
-    AlphabetCharacter []string `json:"alphabetCharacter"`
-    Phoneme           []string `json:"phoneme"`
+    BaseLesson
+    Content []AlphabetContent `json:"content"`
 }
 
-func (a *AlphabetLesson) GetContent() [][]string {
-    return [][]string{
-        a.AlphabetCharacter,
-        a.Phoneme,
-    }
+type AlphabetContent struct {
+    AlphabetCharacter []string `json:"alphabetCharacter"`
+    Phoneme           []string `json:"phoneme"`
 }

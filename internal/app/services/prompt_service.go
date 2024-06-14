@@ -10,8 +10,7 @@ import (
 //
 type PromptService struct{}
 
-func (s *LessonService) createSentenceLessonPrompt(request *models.LessonRequest) string {
-    // temporty work-around for dereferencing the topic
+func (s *LessonService) CreateSentenceLessonPrompt(request *models.LessonRequest) string {
 	topic := ""
     if request.Topic != nil {
         topic = *request.Topic
@@ -69,7 +68,7 @@ func (s *LessonService) createSentenceLessonPrompt(request *models.LessonRequest
 		4, request.Language, request.Level, topic, request.LessonType, request.Language, request.Language, request.Language, request.Language)		
 }
 
-func (s *LessonService) createWordLessonPrompt(request *models.LessonRequest) string {
+func (s *LessonService) CreateWordLessonPrompt(request *models.LessonRequest) string {
 	topic := ""
     if request.Topic != nil {
         topic = *request.Topic
@@ -108,13 +107,9 @@ func (s *LessonService) createWordLessonPrompt(request *models.LessonRequest) st
 		4, request.Language, request.Level, topic, request.LessonType, request.Language, request.Language, request.Language, request.Language)		
 }
 
-func (s *LessonService) createAlphabetLessonPrompt(request *models.LessonRequest) string {
-	topic := ""
-    if request.Topic != nil {
-        topic = *request.Topic
-    }
+func (s *LessonService) CreateAlphabetLessonPrompt(request *models.LessonRequest) string {
 	return fmt.Sprintf(
-		`Generate a random list of %d alphabet characters in %s for a %s level lesson on the topic "%v".
+		`Generate a random list of %d alphabet characters in %s for a %s level.
 		Return an object with the following structure:
 		{
 			"lessonType": "%s",
@@ -139,5 +134,5 @@ func (s *LessonService) createAlphabetLessonPrompt(request *models.LessonRequest
 		- This prompt is designed to generate a lesson object in the specified format for language learning.
 		- Make sure that the phonemes are split and represented accurately according to the phonetic rules of the target language.
 		- Ensure that the phonemes provide a close phonetic approximation of the pronunciation of the alphabet characters, reflecting how they sound when spoken in that language.`,
-		4, request.Language, request.Level, topic, request.LessonType, request.Language, request.Language, request.Language)		
+		4, request.Language, request.Level, request.LessonType, request.Language, request.Language, request.Language)		
 }
